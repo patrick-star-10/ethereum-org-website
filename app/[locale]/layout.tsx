@@ -36,12 +36,17 @@ export default async function LocaleLayout(props: {
 
   const { children } = props
 
+  // Enable static rendering. This must run before the `notFound()` bail below:
+  // `[locale]` acts as a catch-all, so probes like `/api/bug-bounty` render this
+  // subtree with an invalid locale. Pages still render concurrently with this
+  // layout, and without a cached locale their `getTranslations()` calls fall
+  // back to reading `headers()`, which turns a prerendered page dynamic at
+  // runtime. An unsupported value is normalized in `src/i18n/request.ts`.
+  setRequestLocale(locale)
+
   if (!routing.locales.includes(locale)) {
     notFound()
   }
-
-  // Enable static rendering
-  setRequestLocale(locale)
 
   const allMessages = await getMessages()
   const messages = pick(allMessages, "common")
